@@ -2,7 +2,7 @@
 from typing import *
 import BTrees
 
-from document import Document
+from document import Document, parse_document
 
 
 
@@ -17,8 +17,8 @@ class InvertedFile:
         pass
 
     def parse_docs(self, documents: List[str]) -> None:
-        with open(documents[0], mode="r", encoding="utf-8") as f:
-            print(f.readlines()[0])
+        for doc in documents:
+            parse_document(doc)
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int=1) -> None:
         """

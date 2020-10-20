@@ -16,7 +16,9 @@ def pre_work_word(word: str) -> str:
     """
     return word
 
-def parse_document(text: str):
+def parse_document(filename: str):
+    text = "bonjouuuur"
+    # TODO open file, parse XML, fetch infos, make Document instance
     lines = text.splitlines(keepends=False)
     words = []
     for line in lines:
