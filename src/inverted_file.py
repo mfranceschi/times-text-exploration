@@ -1,9 +1,9 @@
 
 from typing import *
+
 import BTrees
 
 from document import Document, parse_document
-
 
 
 class RequestResult:

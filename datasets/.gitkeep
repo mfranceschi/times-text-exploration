@@ -1,0 +1,4 @@
+Dossier vide, du moins en apparence...!
+Merci de mettre tous les fichiers la****** ici.
+Le parseur dans les scripts Python ne va considérer que les fichiers qui répondent à une regex, donc pas de soucis.
+Git ignore tout dans ce dossier sauf ce fichier .gitignore.

@@ -7,8 +7,6 @@ class Document:
     def __str__(self) -> str:
         return f"Document[id={self.id},title={self.title}]"
 
-# str(Document(id=2, title="Un titre")) = "Document[id=2,title=Un titre]"
-
 def pre_work_word(word: str) -> str:
     """
     Context-independent preprocessing of word.
