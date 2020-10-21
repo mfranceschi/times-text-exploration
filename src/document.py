@@ -1,8 +1,6 @@
 
 from typing import *
 
-from xml.dom import minidom
-
 class Document:
     def __init__(self, id: int=0, title: str="", no: str="", text: str=""):
         self.id = id
