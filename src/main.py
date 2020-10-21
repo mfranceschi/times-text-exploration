@@ -7,10 +7,10 @@ from inverted_file import InvertedFile
 from utilities import make_list_of_files
 
 
-user_keywords = [word for word in input().split(sep=" ")]
+user_keywords = ["Antony"]  # [word for word in input().split(sep=" ")]
 
 inverted_file = InvertedFile()
-inverted_file.parse_docs(make_list_of_files(10))  # generate the IF (pre-treatments)
+inverted_file.parse_docs(make_list_of_files())  # generate the IF (pre-treatments)
 
 results: List[Document] = inverted_file.request_words_conjonctive(user_keywords) # [Document(id=2, title="Photos géniales, la 7e va vous surprendre")]
 
