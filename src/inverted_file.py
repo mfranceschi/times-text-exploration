@@ -3,8 +3,10 @@ from typing import *
 
 import BTrees
 
-from document import Document, parse_document
+from document import Document
 
+# https://pythonhosted.org/BTrees/
+# https://btrees.readthedocs.io/en/latest/
 
 class RequestResult:
     def __init__(self, doc: Document, score: int) -> None:
@@ -13,12 +15,20 @@ class RequestResult:
 
 
 class InvertedFile:
+    class VOCPair:
+        def __init__(self, term: str="", size_pl: int=0) -> None:
+            self.term = term
+            self.size_pl = size_pl
+            pass
+
     def __init__(self) -> None:
+        self.documents_catalog: List[Document] = []
+        self.voc = ""  # allez y faites votre b tree
+        self.pl = ""  # todo la veille du rendu
         pass
 
-    def parse_docs(self, documents: List[str]) -> None:
-        for doc in documents:
-            parse_document(doc)
+    def register_document(self, doc: Document) -> None:
+        self.documents_catalog.append(doc)
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int=1) -> None:
         """
