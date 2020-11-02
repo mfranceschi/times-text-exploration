@@ -1,15 +1,41 @@
-from typing import *
+import string
+from typing import List
 
 from document import Document
 from inverted_file import InvertedFile
 from xml.dom import minidom
 
+with open("../english_stopwords.txt") as f:
+    STOP_WORDS = f.readlines()
+ALLOWED_CHARACTERS = string.ascii_lowercase + string.digits
+
+
 def pre_work_word(word: str) -> str:
     """
     Context-independent preprocessing of word.
     TODO later: remove stop words, remove punctuation, tokenize, stem...
+    Returns the corrected string, or the empty string if we decide to ignore that word.
     """
+
+    # Skip if the argument is not interesting.
+    if not word:
+        return ""
+
+    # Convert to lowercase
+    word = word.lower()
+
+    # Remove non-letters characters at the beginning and at the end
+    while word and word[0] not in ALLOWED_CHARACTERS:
+        word = word[1:]
+    while word and word[-1] not in ALLOWED_CHARACTERS:
+        word = word[:-1]
+
+    # Remove stop words
+    if word in STOP_WORDS:
+        word = ""
+
     return word
+
 
 def parse_document(filename: str, invf: InvertedFile):
     # https://docs.python.org/fr/3/library/xml.dom.html#module-xml.dom
@@ -17,7 +43,7 @@ def parse_document(filename: str, invf: InvertedFile):
     with open(filename, "r") as f:
         document_text = f.read()
 
-    document_text_without_line_breaks = document_text.replace("\n","")
+    document_text_without_line_breaks = document_text.replace("\n", "")
     fixed_document = f"<customroot>{document_text_without_line_breaks}</customroot>"
     dom_document = minidom.parseString(fixed_document)
     root_element = dom_document.documentElement
@@ -36,10 +62,10 @@ def parse_document(filename: str, invf: InvertedFile):
         headline_texts = ""
         for paragraph_element in list_of_headline_elements[0].childNodes:
             if paragraph_element.firstChild and paragraph_element.tagName == "P":
-                headline_texts += paragraph_element.firstChild.data 
+                headline_texts += paragraph_element.firstChild.data
         # print(headline_texts)
         document_instance.title = headline_texts
-        
+
         # Get article's main paragraphs
         list_of_text_elements = document_node.getElementsByTagName("TEXT")
         if not list_of_text_elements:

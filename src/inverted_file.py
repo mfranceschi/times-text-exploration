@@ -1,5 +1,5 @@
 
-from typing import *
+from typing import List
 
 import BTrees
 
@@ -8,16 +8,18 @@ from document import Document
 # https://pythonhosted.org/BTrees/
 # https://btrees.readthedocs.io/en/latest/
 
+
 class RequestResult:
     def __init__(self, doc: Document, score: int) -> None:
         self.doc = doc
         self.score = score
 
+
 # https://www.geeksforgeeks.org/python-positional-index/
 # https://pypi.org/project/diskhash/
 class InvertedFile:
     class VOCPair:
-        def __init__(self, term: str="", size_pl: int=0) -> None:
+        def __init__(self, term: str = "", size_pl: int = 0) -> None:
             self.term = term
             self.size_pl = size_pl
             pass
@@ -31,7 +33,7 @@ class InvertedFile:
     def register_document(self, doc: Document) -> None:
         self.documents_catalog.append(doc)
 
-    def notify_word_appeared(self, word: str, docID: int, occurences: int=1) -> None:
+    def notify_word_appeared(self, word: str, docID: int, occurences: int = 1) -> None:
         """
         When parsing a document, this function takes note that the given word appeared in the given file.
         This may be called several times with the same word, we increment the number of occurences.
@@ -40,6 +42,7 @@ class InvertedFile:
 
     def request_words_conjonctive(self, words: List[str]) -> List[RequestResult]:
         return []
+
 
 # VOC  = {paire<"terme",taille PL>, offset PL }
 # PL = objet continu en disque, accédé en mode "octet par octet".
