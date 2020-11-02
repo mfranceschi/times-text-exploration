@@ -1,11 +1,13 @@
 import string
+from os import path
 from typing import List
 
 from document import Document
 from inverted_file import InvertedFile
 from xml.dom import minidom
 
-with open("../english_stopwords.txt") as f:
+
+with open(path.join(path.dirname(path.dirname(path.abspath(__file__))), "english_stopwords.txt")) as f:
     STOP_WORDS = f.readlines()
 ALLOWED_CHARACTERS = string.ascii_lowercase + string.digits
 

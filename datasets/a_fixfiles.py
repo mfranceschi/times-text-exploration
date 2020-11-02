@@ -17,7 +17,8 @@ files = [
     file for file in os.listdir(path.dirname(path.abspath(__file__)))
     if path.isfile(file) and PATTERN.match(file)
 ]
-print(files)
+if not files:
+    raise RuntimeWarning("No file to process.")
 
 for file in files:
     with open(file, mode="r") as file_read:
