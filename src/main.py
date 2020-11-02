@@ -23,7 +23,7 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
 if __name__ == "__main__":
     user_keywords = ["Antony"]  # [word for word in input().split(sep=" ")]
     inverted_file = InvertedFile()
-    list_of_files = make_list_of_files(nbr=2, random_pick=False)
+    list_of_files = make_list_of_files(nbr=2, random_pick=True)
     for file in list_of_files:
         parse_document(file, inverted_file)
 
