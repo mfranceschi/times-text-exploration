@@ -146,3 +146,4 @@ dmypy.json
 
 datasets/*
 !datasets/.gitkeep
+!datasets/a_fixfiles.py
