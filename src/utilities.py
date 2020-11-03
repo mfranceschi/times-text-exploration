@@ -16,7 +16,7 @@ def make_list_of_files(nbr: int = -1, random_pick: bool = False) -> List[str]:
     :param random_pick: if true then the files returned are randomly picked, else it is in the alphabetical order of the files.
     :return: A list of filepaths as strings.
     """
-    PATTERN = re.compile(r"la[0-9]{6}")
+    PATTERN = re.compile(r"la[0-9]{6}.xml")
     la_files_in_dir = [
         f"{DATASETS_FOLDER}{filename}" for filename in os.listdir(DATASETS_FOLDER)
         if os.path.isfile(os.path.join(DATASETS_FOLDER, filename)) and PATTERN.match(filename)

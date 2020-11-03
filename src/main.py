@@ -13,15 +13,15 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
     # [Document(id=2, title="Photos géniales, la 7e va vous surprendre")]
 
     if results:
-        print(f"Found {len(results)}:")
-        for document in results:
-            print(f"> {document} with score={1}")
+        print(f"Found {len(results)} results:")
+        for req_res in results:
+            print(f"> {req_res.doc} with score={req_res.score}")
     else:
         print("No results found.")
 
 
 if __name__ == "__main__":
-    user_keywords = ["Antony"]  # [word for word in input().split(sep=" ")]
+    user_keywords = ["book"]  # [word for word in input().split(sep=" ")]
     inverted_file = InvertedFile()
     list_of_files = make_list_of_files(nbr=2, random_pick=True)
     for file in list_of_files:

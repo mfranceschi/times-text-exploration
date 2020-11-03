@@ -3,7 +3,7 @@ from os import path
 from typing import List
 
 from document import Document
-from inverted_file import InvertedFile
+# from inverted_file import InvertedFile
 from xml.dom import minidom
 
 
@@ -20,13 +20,13 @@ def pre_work_word(word: str) -> str:
     """
 
     # Skip if the argument is not interesting.
-    if not word:
+    if not word or type(word) is not str:
         return ""
 
     # Convert to lowercase
     word = word.lower()
 
-    # Remove non-letters characters at the beginning and at the end
+    # Remove non-letters/non-numbers characters at the beginning and at the end
     while word and word[0] not in ALLOWED_CHARACTERS:
         word = word[1:]
     while word and word[-1] not in ALLOWED_CHARACTERS:
@@ -39,15 +39,15 @@ def pre_work_word(word: str) -> str:
     return word
 
 
-def parse_document(filename: str, invf: InvertedFile):
+def parse_document(filename: str, invf):
     # https://docs.python.org/fr/3/library/xml.dom.html#module-xml.dom
     print(f"Filename : {filename}")
     with open(filename, "r") as f:
         document_text = f.read()
 
     document_text_without_line_breaks = document_text.replace("\n", "")
-    fixed_document = f"<customroot>{document_text_without_line_breaks}</customroot>"
-    dom_document = minidom.parseString(fixed_document)
+#     fixed_document = f"<customroot>{document_text_without_line_breaks}</customroot>"
+    dom_document = minidom.parseString(document_text_without_line_breaks)
     root_element = dom_document.documentElement
 
     for document_node in root_element.childNodes:
