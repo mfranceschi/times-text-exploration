@@ -10,7 +10,6 @@ from doc_parser import parse_document
 
 def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
     results: List[Document] = inverted_file.request_words_conjonctive(user_keywords)
-    # [Document(id=2, title="Photos géniales, la 7e va vous surprendre")]
 
     if results:
         print(f"Found {len(results)} results:")

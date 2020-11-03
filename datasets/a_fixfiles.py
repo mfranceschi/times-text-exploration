@@ -8,15 +8,16 @@ What it does for each LA file:
 - Write the content with an additional custom XML root node
 """
 
-import os
-from os import path
+from pathlib import Path
+from typing import List
 import re
 
 PATTERN = re.compile(r"la[0-9]{6}")
-files = [
-    file for file in os.listdir(path.dirname(path.abspath(__file__)))
-    if path.isfile(file) and PATTERN.match(file)
-]
+files: List[Path] = []
+for file in Path(__file__).parent.iterdir():
+    if file.is_file() and PATTERN.match(file.name):
+        files.append(file)
+
 if not files:
     raise RuntimeWarning("No file to process.")
 
