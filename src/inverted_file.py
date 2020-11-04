@@ -1,8 +1,10 @@
 from collections import defaultdict
+from math import log
 from typing import List, Dict, Tuple
 
-import BTrees
 from doc_parser import pre_work_word
+from voc import VOC
+from pl import PL, PL_InPythonLists, PLEntry
 
 from document import Document
 
@@ -22,31 +24,11 @@ class RequestResult:
 # https://www.geeksforgeeks.org/python-positional-index/
 # https://pypi.org/project/diskhash/
 
-class VOCEntry:
-    """
-    This tuple is the value type of the "voc" dict.
-    Beign known the word, it gives the Posting List's size and identifier.
-    Identifier = how to retrieve it (interpretation changes depending on the PL data structure).
-    """
-    def __init__(self, pl_identifier: int, size_pl: int) -> None:
-        self.pl_id = pl_identifier
-        self.size_pl = size_pl
-
-
-class PLEntry:
-    """
-    This tuple, given a known word, associates to it a document and a score.
-    """
-    def __init__(self, docID: int = 0, score: int = 0) -> None:
-        self.docID = docID
-        self.score = score
-
-
 class InvertedFile:
     def __init__(self) -> None:
         self.documents_catalog: List[Document] = []
-        self.voc: Dict[str, VOCEntry] = defaultdict()  # Associates a word with infos about the PL.
-        self.pl: List[List[PLEntry]] = []  # pl[i] gives the PL of the word which metadata indicates that the PL ID is i.
+        self.voc: VOC = VOC()
+        self.pl: PL = PL_InPythonLists()
 
     def register_document(self, doc: Document) -> None:
         self.documents_catalog.append(doc)
@@ -56,54 +38,60 @@ class InvertedFile:
             if doc.id == id:
                 return doc
 
-    def compute_score(self, occurences: int) -> int:
+    def compute_scores(self):
         """
-        Given all possible infos, computes and returns a score.
-        Current method: count the occurences (TODO: TF-IDF).
+        When all documents are parsed, we re-compute scores for all PL entries.
         """
-        return occurences
+        D = len(self.documents_catalog)  # Number total of documents
+
+        for voc_entry in self.voc.voc.values():
+            pl_id = voc_entry.pl_id
+            pl_size = voc_entry.size_pl
+
+            current_pl = self.pl.get_pl(pl_id=pl_id, size=pl_size)
+            for pl_entry in current_pl:
+                tf = 1 + log(pl_entry.score)
+                idf = log(D / (1 + pl_size))
+                final_score = int(100 * tf * idf)
+                pl_entry.score = final_score
+            self.pl.flush_pl(pl_id=pl_id, new_pl=current_pl)
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int) -> None:
         """
         When parsing a document, this function takes note that the given word appeared in the given file.
         This may be called several times with the same word, we increment the number of occurences.
         """
-        voc_item = self.voc.get(word)
-        new_pl_item = PLEntry(docID=docID, score=self.compute_score(occurences=occurences))
-
-        if voc_item:
-            # update pl item and voc item for term
-            pl_id = voc_item.pl_id
-            pl_list = self.pl[pl_id]
-
-            pl_list.append(new_pl_item)
-            voc_item.size_pl += 1
+        score = occurences
+        if self.voc.has_term(word):
+            pl_id = self.voc.get_pl_id(word)
+            self.pl.update(pl_id, docID, score)
+            self.voc.increment_pl_size(word)
         else:
-            # create new instance in voc for term
-            new_pl_id = len(self.pl)
-            voc_item = VOCEntry(pl_identifier=new_pl_id, size_pl=1)
-            self.pl.append([new_pl_item])
-            self.voc[word] = voc_item
+            pl_id = self.pl.create_new_pl(docID, score)
+            self.voc.add_entry(word, pl_id)
 
-    def request_words_conjonctive(self, words: List[str]) -> List[RequestResult]:
+    def request_words_disjonctive(self, words: List[str]) -> List[RequestResult]:
         request = (pre_work_word(word) for word in words)
         results: List[RequestResult] = []
 
         for word_to_test in request:
-            voc_item = self.voc.get(word_to_test)
-            if not voc_item:
-                return []
+            if self.voc.has_term(word_to_test):
+                pl_size = self.voc.get_pl_size(word_to_test)
+                pl_id = self.voc.get_pl_id(word_to_test)
+                pl_for_that_term: List[PLEntry] = self.pl.get_pl(pl_id=pl_id, size=pl_size)
 
-            for pl_entry in self.pl[voc_item.pl_id]:
-                doc_id = pl_entry.docID
-                document = self.get_document_by_id(doc_id)
-                score = pl_entry.score
+                for pl_entry in pl_for_that_term:
+                    doc_id = pl_entry.docID
+                    document = self.get_document_by_id(doc_id)
+                    score = pl_entry.score
 
-                # TODO: if the document is already there, don't add a new entry but adapt the score.
-                result = RequestResult(doc=document, score=score)
-                results.append(result)
-
-        # TODO: as it is a conjonctive request, we must ensure that all documents are in the PLs of all words.
+                    # If the document is already there, don't add a new entry but adapt the score.
+                    for item in results:
+                        if item.doc == document:
+                            item.score += score
+                            break
+                    result = RequestResult(doc=document, score=score)
+                    results.append(result)
 
         # Sort by descending order of the scores
         results.sort(key=lambda req_res: req_res.score, reverse=True)
@@ -111,7 +99,7 @@ class InvertedFile:
 
 
 # memory mapped files
-# VOC  = {paire<"terme",taille PL>, offset PL }  hasmap??? (Pidou)
+# VOC  = {paire<"terme",taille PL>, offset PL } 
 # PL = objet continu en disque, accédé en mode "octet par octet".
 # Idées en vrac:
 # -> La PL est un tableau continu en mémoire, tableau de paires<docID,score> pour chaque terme. 

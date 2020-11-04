@@ -1,5 +1,5 @@
 import string
-from os import path
+from pathlib import Path
 from typing import List
 
 from document import Document
@@ -7,7 +7,7 @@ from document import Document
 from xml.dom import minidom
 
 
-with open(path.join(path.dirname(path.dirname(path.abspath(__file__))), "english_stopwords.txt")) as f:
+with open(Path(__file__).parent.parent / "english_stopwords.txt") as f:
     STOP_WORDS = f.readlines()
 ALLOWED_CHARACTERS = string.ascii_lowercase + string.digits
 

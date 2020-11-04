@@ -1,6 +1,7 @@
 from __future__ import absolute_import
 
 from typing import *
+import time
 
 from document import Document
 from inverted_file import InvertedFile
@@ -9,7 +10,7 @@ from doc_parser import parse_document
 
 
 def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
-    results: List[Document] = inverted_file.request_words_conjonctive(user_keywords)
+    results: List[Document] = inverted_file.request_words_disjonctive(user_keywords)
 
     if results:
         print(f"Found {len(results)} results:")
@@ -20,10 +21,14 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
 
 
 if __name__ == "__main__":
-    user_keywords = ["book"]  # [word for word in input().split(sep=" ")]
+    start = time.time()
+    user_keywords = ["city"]  # [word for word in input().split(sep=" ")]
     inverted_file = InvertedFile()
-    list_of_files = make_list_of_files(nbr=2, random_pick=True)
+    list_of_files = make_list_of_files(nbr=5, random_pick=True)
     for file in list_of_files:
         parse_document(file, inverted_file)
+    inverted_file.compute_scores()
 
     run_search(user_keywords=user_keywords, inverted_file=inverted_file)
+    end = time.time()
+    print(f"Execution time: {end - start}")
