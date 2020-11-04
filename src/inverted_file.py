@@ -3,13 +3,14 @@ from math import log
 from typing import List, Dict, Tuple
 
 from doc_parser import pre_work_word
-from voc import VOC
+from voc import VOC, VOC_Hashmap
 from pl import PL, PL_InPythonLists, PLEntry
 
 from document import Document
 
-# https://pythonhosted.org/BTrees/
-# https://btrees.readthedocs.io/en/latest/
+
+# https://www.geeksforgeeks.org/python-positional-index/
+# https://pypi.org/project/diskhash/
 
 
 class RequestResult:
@@ -21,13 +22,10 @@ class RequestResult:
         return f"RequestResult[doc={self.doc}, score={self.score}]"
 
 
-# https://www.geeksforgeeks.org/python-positional-index/
-# https://pypi.org/project/diskhash/
-
 class InvertedFile:
     def __init__(self) -> None:
         self.documents_catalog: List[Document] = []
-        self.voc: VOC = VOC()
+        self.voc: VOC = VOC_Hashmap()
         self.pl: PL = PL_InPythonLists()
 
     def register_document(self, doc: Document) -> None:
@@ -44,7 +42,7 @@ class InvertedFile:
         """
         D = len(self.documents_catalog)  # Number total of documents
 
-        for voc_entry in self.voc.voc.values():
+        for voc_entry in self.voc.iterate():
             pl_id = voc_entry.pl_id
             pl_size = voc_entry.size_pl
 
@@ -62,8 +60,8 @@ class InvertedFile:
         This may be called several times with the same word, we increment the number of occurences.
         """
         score = occurences
-        if self.voc.has_term(word):
-            pl_id = self.voc.get_pl_id(word)
+        if word in self.voc:
+            pl_id = self.voc[word].pl_id
             self.pl.update(pl_id, docID, score)
             self.voc.increment_pl_size(word)
         else:
@@ -75,9 +73,11 @@ class InvertedFile:
         results: List[RequestResult] = []
 
         for word_to_test in request:
-            if self.voc.has_term(word_to_test):
-                pl_size = self.voc.get_pl_size(word_to_test)
-                pl_id = self.voc.get_pl_id(word_to_test)
+            if word_to_test in self.voc:
+                pl_infos = self.voc[word_to_test]
+                pl_size = pl_infos.size_pl
+                pl_id = pl_infos.pl_id
+
                 pl_for_that_term: List[PLEntry] = self.pl.get_pl(pl_id=pl_id, size=pl_size)
 
                 for pl_entry in pl_for_that_term:

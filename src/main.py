@@ -22,9 +22,9 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
 
 if __name__ == "__main__":
     start = time.time()
-    user_keywords = ["city"]  # [word for word in input().split(sep=" ")]
+    user_keywords = ["violence"]  # [word for word in input().split(sep=" ")]
     inverted_file = InvertedFile()
-    list_of_files = make_list_of_files(nbr=5, random_pick=True)
+    list_of_files = make_list_of_files(nbr=2, random_pick=False)
     for file in list_of_files:
         parse_document(file, inverted_file)
     inverted_file.compute_scores()
