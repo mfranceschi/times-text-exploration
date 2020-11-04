@@ -10,7 +10,7 @@ class VOCEntry:
     """
     def __init__(self, pl_identifier: int, size_pl: int) -> None:
         self.pl_id = pl_identifier
-        self.size_pl = size_pl
+        self.pl_size = size_pl
 
 
 class VOC:
@@ -72,7 +72,7 @@ class VOC_Hashmap(VOC):
 
     def increment_pl_size(self, term: str) -> None:
         voc_term = self.voc.get(term)
-        voc_term.size_pl += 1
+        voc_term.pl_size += 1
 
     def add_entry(self, term: str, pl_identifier: int):
         voc_item = VOCEntry(pl_identifier=pl_identifier, size_pl=1)

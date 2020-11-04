@@ -43,13 +43,13 @@ class PL:
         raise NotImplementedError()
 
 
-class PL_InPythonLists(PL):
+class PL_PythonLists(PL):
     """
     Basic implementation with simple python collections
     """
 
     def __init__(self) -> None:
-        super(PL_InPythonLists, self).__init__()
+        super(PL_PythonLists, self).__init__()
         self.pl: List[List[PLEntry]] = []
 
     def update(self, pl_id: int, doc_id: int, score: int) -> None:
