@@ -91,7 +91,7 @@ class InvertedFile:
                             item.score += score
                             doc_already_here = True
                             break
-                    if doc_already_here:
+                    if not doc_already_here:
                         result = RequestResult(doc=document, score=score)
                         results.append(result)
 
