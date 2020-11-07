@@ -28,3 +28,9 @@ def make_list_of_files(nbr: int = -1, random_pick: bool = False) -> List[str]:
         return random.sample(population=la_files_in_dir, k=nbr)
     else:
         return [str(current_la_file) for current_la_file in la_files_in_dir[:nbr]]
+
+
+def create_empty_file_with_size(file: str, size: int) -> None:
+    with open(file=file, mode="wb+", buffering=0) as opened_file:
+        opened_file.seek(size - 1)
+        opened_file.write(b"\0")
