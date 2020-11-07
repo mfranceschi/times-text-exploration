@@ -68,7 +68,8 @@ class InvertedFile:
         Makes an "OR" request of the words.
         The words are preprocessed first.
         """
-        request = (pre_work_word(word) for word in words)
+        request = list(set(pre_work_word(word) for word in words))
+
         results: List[RequestResult] = []
 
         for word_to_test in request:

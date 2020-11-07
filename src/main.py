@@ -24,7 +24,7 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
 
 if __name__ == "__main__":
     start = time.time()
-    user_keywords = ["violence"]  # [word for word in input().split()]
+    user_keywords = ["violence", "violence", "violence"]  # [word for word in input().split()]
     inverted_file = InvertedFile(voc=VOC_Hashmap(), pl=PL_PythonLists())
     list_of_files = make_list_of_files(nbr=2, random_pick=False)
     for file in list_of_files:
