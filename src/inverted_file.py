@@ -52,7 +52,7 @@ class InvertedFile:
     def notify_word_appeared(self, word: str, docID: int, occurences: int) -> None:
         """
         When parsing a document, this function takes note that the given word appeared in the given file.
-        This may be called several times with the same word, we increment the number of occurences.
+        This must not be called several times with the same pair(word, document).
         """
         score = occurences
         if word in self.voc:
