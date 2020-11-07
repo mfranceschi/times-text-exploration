@@ -9,6 +9,9 @@ class PLEntry:
         self.docID = docID
         self.score = score
 
+    def __str__(self) -> str:
+        return f"PLEntry[docID={self.docID}, score={self.score}]"
+
 
 class PL:
     """

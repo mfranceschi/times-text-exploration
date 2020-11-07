@@ -31,6 +31,13 @@ def make_list_of_files(nbr: int = -1, random_pick: bool = False) -> List[str]:
 
 
 def create_empty_file_with_size(file: str, size: int) -> None:
+    """
+    Creates a file and make it have the given size.
+    If it already exists, the original is erased.
+    """
+    if Path(file).exists():
+        Path(file).unlink()
+
     with open(file=file, mode="wb+", buffering=0) as opened_file:
         opened_file.seek(size - 1)
         opened_file.write(b"\0")
