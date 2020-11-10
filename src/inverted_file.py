@@ -48,7 +48,7 @@ class InvertedFile:
                 final_score = int(100 * tf * idf)
                 pl_entry.score = final_score
 
-        self.pl = self.pl.flush()
+        self.pl = PL.convert_to_readonly(self.pl)
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int) -> None:
         """
