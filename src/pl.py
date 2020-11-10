@@ -1,4 +1,7 @@
+import mmap
 from typing import List
+
+from utilities import create_empty_file_with_size
 
 
 class PLEntry:
@@ -39,9 +42,10 @@ class PL:
         """
         raise NotImplementedError()
 
-    def flush_pl(self, pl_id: int, new_pl: List[PLEntry]):
+    def flush(self):
         """
         Assuming that the given PL has same size and no weird content, we copy and save the contents.
+        It returns a read-only PL.
         """
         raise NotImplementedError()
 
@@ -54,6 +58,7 @@ class PL_PythonLists(PL):
     def __init__(self) -> None:
         super(PL_PythonLists, self).__init__()
         self.pl: List[List[PLEntry]] = []
+        self.disk_pl: PL_MMap = None
 
     def update(self, pl_id: int, doc_id: int, score: int) -> None:
         pl_entry = PLEntry(docID=doc_id, score=score)
@@ -68,17 +73,32 @@ class PL_PythonLists(PL):
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         return self.pl[pl_id]
 
-    def flush_pl(self, pl_id: int, new_pl: List[PLEntry]):
-        pass
+    def flush(self) -> PL:
+        return self  # TODO use disk
 
 
-class PL_M_Map(PL):
+class PL_MMap(PL):
     """
-    TODO
+    This class is dedicated to reading a PL on disk.
+    On construction, it takes an "in-memory" PL and writes it entirely on disk.
+    Then, the only available method is "get_pl".
     """
-    def __init__(self) -> None:
-        super(PL_M_Map, self).__init__()
-        pass
 
-    def add_entry(self, pl_id: int, doc_id: int, score: int):
-        pass
+    _FILE_NAME = "pl.txt"
+    _FILE_SIZE = int(1e7)
+    _DOC_ID_LENGTH = 4  # A doc ID is encoded in 4 bytes.
+    _SCORE_LENGTH = 2  # A score is encoded in 2 bytes.
+
+    def __init__(self, original_pl: PL) -> None:
+        super(PL_MMap, self).__init__()
+        create_empty_file_with_size(file=self._FILE_NAME, size=self._FILE_SIZE)
+        self.file = open(self._FILE_NAME, mode="wb+", buffering=0)
+        self.mmap = mmap.mmap(self.file.fileno(), self._FILE_SIZE)
+        # TODO write the original_pl on disk
+
+    def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
+        """
+        Returns a Python list with all entries for the given PL.
+        """
+        # TODO read from disk
+        raise NotImplementedError()
