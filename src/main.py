@@ -1,13 +1,13 @@
 from __future__ import absolute_import
 
-from typing import *
 import time
+from typing import *
 
+from doc_parser import parse_document
 from document import Document
 from inverted_file import InvertedFile
 from pl import PL_PythonLists
 from utilities import make_list_of_files
-from doc_parser import parse_document
 from voc import VOC_Hashmap
 
 
@@ -26,11 +26,11 @@ if __name__ == "__main__":
     start = time.time()
     user_keywords = ["violence", "violence", "violence"]  # [word for word in input().split()]
     inverted_file = InvertedFile(voc=VOC_Hashmap(), pl=PL_PythonLists())
-    list_of_files = make_list_of_files(nbr=2, random_pick=False)
+    list_of_files = make_list_of_files(nbr=10, random_pick=False)
     for file in list_of_files:
         parse_document(file, inverted_file)
     inverted_file.compute_scores()
-    inverted_file.convert_to_read_only()
+    # inverted_file.convert_to_read_only()
 
     run_search(user_keywords=user_keywords, inverted_file=inverted_file)
     end = time.time()

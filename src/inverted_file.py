@@ -53,10 +53,15 @@ class InvertedFile:
         new_pl = PL_MMap()
         new_voc = VOC_Hashmap()
 
-        for term, voc_entry in self.voc.iterate2():
-            pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
-            pl_id = new_pl.add(pl_to_copy)
-            new_voc.add_entry(term, pl_id, voc_entry.pl_size)
+        if new_pl.needs_iterative_initialization():
+            for term, voc_entry in self.voc.iterate2():
+                pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
+                pl_id = new_pl.add(pl_to_copy)
+                new_voc.add_entry(term, pl_id, voc_entry.pl_size)
+        else:
+            new_pl.initialize(self.pl)
+            for term, voc_entry in self.voc.iterate2():
+                new_voc.add_entry(term, voc_entry.pl_id, voc_entry.pl_size)
 
         self.pl = new_pl
         self.voc = new_voc

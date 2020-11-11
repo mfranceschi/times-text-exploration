@@ -1,5 +1,5 @@
-import mmap
 from typing import List, Dict, Tuple
+import mmap
 
 from utilities import create_empty_file_with_size
 
@@ -42,26 +42,6 @@ class PL:
         """
         raise NotImplementedError()
 
-    @classmethod
-    def convert_to_readonly(cls, instance) -> Tuple[Dict[int, int], ...]:
-        """
-        Converts the given instance to a read-only version (the only available method is "get_pl").
-        Returns a tuple with:
-        1. A list of pairs <old_offset, new_offset>, resulting of the transformation. 
-           Is "None" if no change to take into account for the VOC.
-        2. The new read-only PL instance.
-        """
-        new_pl = PL_PythonLists_ReadOnly()
-        new_pairs = new_pl.initialize(instance)
-        return new_pairs, instance
-
-    # def flush(self):
-    #     """
-    #     Assuming that the given PL has same size and no weird content, we copy and save the contents.
-    #     It returns a read-only PL.
-    #     """
-    #     raise NotImplementedError()
-
 
 class ReadOnlyPL:
     """
@@ -85,6 +65,12 @@ class ReadOnlyPL:
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         """
         Returns a Python list with all entries for the given PL.
+        """
+        raise NotImplementedError()
+
+    def needs_iterative_initialization() -> bool:
+        """
+        Returns True if the given instance needs to be initialized, one list at a time. Returns False otherwise.
         """
         raise NotImplementedError()
 
@@ -126,6 +112,9 @@ class PL_PythonLists_ReadOnly(ReadOnlyPL):
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         return self.underlying_pl.get_pl(pl_id, size)
 
+    def needs_iterative_initialization() -> bool:
+        return False
+
 
 class PL_MMap(ReadOnlyPL):
     """
@@ -138,7 +127,7 @@ class PL_MMap(ReadOnlyPL):
     """
 
     _FILE_NAME = "pl.txt"
-    _FILE_SIZE = int(3e3)
+    _FILE_SIZE = int(1e5)
     _DOC_ID_LENGTH = 4  # A doc ID is encoded in 4 bytes.
     _SCORE_LENGTH = 2  # A score is encoded in 2 bytes.
     _PL_ENTRY_LENGTH = _DOC_ID_LENGTH + _SCORE_LENGTH
@@ -149,16 +138,6 @@ class PL_MMap(ReadOnlyPL):
         self.file = open(self._FILE_NAME, mode="wb+", buffering=0)
         self.mmap = mmap.mmap(self.file.fileno(), self._FILE_SIZE)
         self.current_size = 0  # Currently used bytes in the file, starting from 0.
-
-    def initialize(self, original_pl: PL) -> Dict[int, int]:
-        new_pairs: Dict[int, int] = {}
-
-        # pour chaque PL d'un terme, appeler "_write_pl_of_single_word".
-
-        if isinstance(original_pl, PL_PythonLists):
-            py_pl: PL_PythonLists = original_pl
-        # TODO write the original_pl on disk
-        pass
 
     def add(self, pl_to_add: List[PLEntry]):
         used_pl_id = self.current_size
