@@ -1,5 +1,5 @@
 import mmap
-from typing import List, Dict
+from typing import List, Dict, Tuple
 
 from utilities import create_empty_file_with_size
 
@@ -18,7 +18,7 @@ class PLEntry:
 
 class PL:
     """
-    PL abstract class
+    PL abstract class. Allows read and write accesses.
     """
 
     def __init__(self) -> None:
@@ -43,22 +43,33 @@ class PL:
         raise NotImplementedError()
 
     @classmethod
-    def convert_to_readonly(cls, instance):
+    def convert_to_readonly(cls, instance) -> Tuple[Dict[int, int], ...]:
         """
         Converts the given instance to a read-only version (the only available method is "get_pl").
+        Returns a tuple with:
+        1. A list of pairs <old_offset, new_offset>, resulting of the transformation. 
+           Is "None" if no change to take into account for the VOC.
+        2. The new read-only PL instance.
         """
-        return instance  # TODO use disk
+        new_pl = PL_PythonLists_ReadOnly()
+        new_pairs = new_pl.initialize(instance)
+        return new_pairs, instance
 
-    def flush(self):
-        """
-        Assuming that the given PL has same size and no weird content, we copy and save the contents.
-        It returns a read-only PL.
-        """
-        raise NotImplementedError()
+    # def flush(self):
+    #     """
+    #     Assuming that the given PL has same size and no weird content, we copy and save the contents.
+    #     It returns a read-only PL.
+    #     """
+    #     raise NotImplementedError()
 
 
 class ReadOnlyPL:
     """
+    A PL only used for reading.
+    How to use:
+    1 - constructor
+    2 - initialize
+    3 - get_pl any time necessary
     """
 
     def __init__(self) -> None:
@@ -69,12 +80,13 @@ class ReadOnlyPL:
         Copies the contents of "original_pl" and copies it on the disk.
         Returns a list of pairs <original_pl_id, new_pl_id>.
         """
-        pass
+        raise NotImplementedError()
 
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         """
         Returns a Python list with all entries for the given PL.
         """
+        raise NotImplementedError()
 
 
 class PL_PythonLists(PL):
@@ -87,7 +99,6 @@ class PL_PythonLists(PL):
     def __init__(self) -> None:
         super(PL_PythonLists, self).__init__()
         self.pl: List[List[PLEntry]] = []
-        self.disk_pl: PL_MMap = None
 
     def update(self, pl_id: int, doc_id: int, score: int) -> None:
         pl_entry = PLEntry(docID=doc_id, score=score)
@@ -103,7 +114,20 @@ class PL_PythonLists(PL):
         return self.pl[pl_id]
 
 
-class PL_MMap(PL):
+class PL_PythonLists_ReadOnly(ReadOnlyPL):
+    def __init__(self) -> None:
+        super().__init__()
+        self.underlying_pl: PL_PythonLists = None
+
+    def initialize(self, original_pl: PL) -> Dict[int, int]:
+        assert type(original_pl) is PL_PythonLists
+        self.underlying_pl = original_pl.pl
+
+    def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
+        return self.underlying_pl.get_pl(pl_id, size)
+
+
+class PL_MMap(ReadOnlyPL):
     """
     READ-ONLY POSTING LIST.
     This class is dedicated to reading a PL on disk.
@@ -114,7 +138,7 @@ class PL_MMap(PL):
     """
 
     _FILE_NAME = "pl.txt"
-    _FILE_SIZE = int(1e7)
+    _FILE_SIZE = int(3e3)
     _DOC_ID_LENGTH = 4  # A doc ID is encoded in 4 bytes.
     _SCORE_LENGTH = 2  # A score is encoded in 2 bytes.
     _PL_ENTRY_LENGTH = _DOC_ID_LENGTH + _SCORE_LENGTH
@@ -124,15 +148,27 @@ class PL_MMap(PL):
         create_empty_file_with_size(file=self._FILE_NAME, size=self._FILE_SIZE)
         self.file = open(self._FILE_NAME, mode="wb+", buffering=0)
         self.mmap = mmap.mmap(self.file.fileno(), self._FILE_SIZE)
+        self.current_size = 0  # Currently used bytes in the file, starting from 0.
 
     def initialize(self, original_pl: PL) -> Dict[int, int]:
+        new_pairs: Dict[int, int] = {}
+
+        # pour chaque PL d'un terme, appeler "_write_pl_of_single_word".
+
+        if isinstance(original_pl, PL_PythonLists):
+            py_pl: PL_PythonLists = original_pl
         # TODO write the original_pl on disk
         pass
+
+    def add(self, pl_to_add: List[PLEntry]):
+        used_pl_id = self.current_size
+        written_length = self._write_pl_of_single_word(used_pl_id, pl_to_add)
+        return used_pl_id + written_length
 
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         return self._read_pl_of_single_word(pl_id, size)
 
-    def _write_pl_of_single_word(self, pl_id: int, entries: List[PLEntry]):
+    def _write_pl_of_single_word(self, pl_id: int, entries: List[PLEntry]) -> int:
         to_write = bytearray(self._PL_ENTRY_LENGTH * len(entries))
         i = 0
         for entry in entries:
@@ -140,12 +176,13 @@ class PL_MMap(PL):
             i += self._PL_ENTRY_LENGTH
         self.mmap.seek(pl_id)
         self.mmap.write(to_write)
+        return pl_id + len(to_write)
 
     def _read_pl_of_single_word(self, pl_id: int, size: int) -> List[PLEntry]:
-        result = [] * size
+        result = []
         self.mmap.seek(pl_id)
         full_bar = self.mmap.read(self._PL_ENTRY_LENGTH * size)
-        for offset in range(0, self._PL_ENTRY_LENGTH * size, step=self._PL_ENTRY_LENGTH):
+        for offset in range(0, self._PL_ENTRY_LENGTH * size, self._PL_ENTRY_LENGTH):
             current_bar = full_bar[offset:offset + self._PL_ENTRY_LENGTH]
             entry = self._bytearray_to_pl_entry(current_bar)
             result.append(entry)

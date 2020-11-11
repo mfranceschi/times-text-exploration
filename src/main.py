@@ -30,6 +30,7 @@ if __name__ == "__main__":
     for file in list_of_files:
         parse_document(file, inverted_file)
     inverted_file.compute_scores()
+    inverted_file.convert_to_read_only()
 
     run_search(user_keywords=user_keywords, inverted_file=inverted_file)
     end = time.time()

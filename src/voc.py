@@ -1,5 +1,5 @@
 from collections import defaultdict
-from typing import Dict, Iterable
+from typing import Dict, Iterable, Tuple
 
 
 class VOCEntry:
@@ -45,7 +45,7 @@ class VOC:
         """
         raise NotImplementedError()
 
-    def add_entry(self, term: str, pl_identifier: int):
+    def add_entry(self, term: str, pl_identifier: int, size: int = 1):
         """
         Adds a new entry to the VOC (identified by the term) with the size of its PL
         """
@@ -54,6 +54,12 @@ class VOC:
     def iterate(self) -> Iterable[VOCEntry]:
         """
         Returns an iterable object for running through all the VOCEntries.
+        """
+        raise NotImplementedError()
+
+    def iterate2(self) -> Iterable[Tuple[str, VOCEntry]]:
+        """
+        Returns an iterable object for running through all pairs of <term, VOCEntry>.
         """
         raise NotImplementedError()
 
@@ -74,13 +80,17 @@ class VOC_Hashmap(VOC):
         voc_term = self.voc.get(term)
         voc_term.pl_size += 1
 
-    def add_entry(self, term: str, pl_identifier: int):
-        voc_item = VOCEntry(pl_identifier=pl_identifier, size_pl=1)
+    def add_entry(self, term: str, pl_identifier: int, size: int = 1):
+        voc_item = VOCEntry(pl_identifier=pl_identifier, size_pl=size)
         self.voc[term] = voc_item
 
     def iterate(self) -> Iterable[VOCEntry]:
         for entry in self.voc.values():
             yield entry
+
+    def iterate2(self) -> Iterable[Tuple[str, VOCEntry]]:
+        for item in self.voc.items():
+            yield item
 
 
 # https://pythonhosted.org/BTrees/

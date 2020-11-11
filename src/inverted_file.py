@@ -3,8 +3,8 @@ from typing import List
 
 from doc_parser import pre_work_word
 from doc_register import DocRegister
-from voc import VOC
-from pl import PL, PLEntry
+from voc import VOC, VOC_Hashmap
+from pl import PL, PLEntry, PL_MMap, ReadOnlyPL
 
 from document import Document
 
@@ -27,6 +27,7 @@ class InvertedFile:
         self.register = DocRegister()
         self.voc: VOC = voc
         self.pl: PL = pl
+        self.read_only_pl: ReadOnlyPL = None
 
     def register_document(self, doc: Document) -> None:
         self.register += doc
@@ -48,7 +49,17 @@ class InvertedFile:
                 final_score = int(100 * tf * idf)
                 pl_entry.score = final_score
 
-        self.pl = PL.convert_to_readonly(self.pl)
+    def convert_to_read_only(self):
+        new_pl = PL_MMap()
+        new_voc = VOC_Hashmap()
+
+        for term, voc_entry in self.voc.iterate2():
+            pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
+            pl_id = new_pl.add(pl_to_copy)
+            new_voc.add_entry(term, pl_id, voc_entry.pl_size)
+
+        self.pl = new_pl
+        self.voc = new_voc
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int) -> None:
         """
@@ -112,6 +123,7 @@ class InvertedFile:
 
 """
 MEMORY MAPPED FILES
+TODO remove car obsolète
 
 VOC = {paire<"terme",taille PL>, offset PL}
 PL = objet continu en disque, accédé en mode "octet par octet".
