@@ -3,7 +3,6 @@ from pathlib import Path
 from typing import List
 
 from document import Document
-# from inverted_file import InvertedFile
 from xml.dom import minidom
 
 
@@ -15,7 +14,7 @@ ALLOWED_CHARACTERS = string.ascii_lowercase + string.digits
 def pre_work_word(word: str) -> str:
     """
     Context-independent preprocessing of word.
-    TODO later: remove stop words, remove punctuation, tokenize, stem...
+    TODO tokenize, stem...
     Returns the corrected string, or the empty string if we decide to ignore that word.
     """
 

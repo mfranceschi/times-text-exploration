@@ -12,6 +12,9 @@ class VOCEntry:
         self.pl_id = pl_identifier
         self.pl_size = size_pl
 
+    def __str__(self) -> str:
+        return f"VOCEntry[pl_id={self.pl_id}, pl_size={self.pl_size}]"
+
 
 class VOC:
     """

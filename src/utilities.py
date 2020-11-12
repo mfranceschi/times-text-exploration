@@ -1,8 +1,10 @@
-from pathlib import Path
 import random
 import re
+import time
+from pathlib import Path
 from typing import List
 
+import nltk
 
 DATASETS_FOLDER = Path(__file__).parent.parent / "datasets"
 PATTERN = re.compile(r"la[0-9]{6}.xml")
@@ -41,3 +43,16 @@ def create_empty_file_with_size(file: str, size: int) -> None:
     with open(file=file, mode="wb+", buffering=0) as opened_file:
         opened_file.seek(size - 1)
         opened_file.write(b"\0")
+
+
+def timepoint() -> float:
+    """
+    Gets the current time in seconds.
+    """
+    return time.perf_counter()
+
+
+def convert_str_to_tokens(data: str) -> List[str]:
+    tokenizer = nltk.tokenize.casual_tokenize(data)
+    print(type(tokenizer), tokenizer)
+    return tokenizer

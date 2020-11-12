@@ -1,4 +1,4 @@
-from math import log
+import math
 from typing import List
 
 from doc_parser import pre_work_word
@@ -44,8 +44,8 @@ class InvertedFile:
 
             current_pl = self.pl.get_pl(pl_id=pl_id, size=pl_size)
             for pl_entry in current_pl:
-                tf = 1 + log(pl_entry.score)
-                idf = log(D / (1 + pl_size))
+                tf = 1 + math.log(pl_entry.score)
+                idf = math.log(D / (1 + pl_size))
                 final_score = int(100 * tf * idf)
                 pl_entry.score = final_score
 
