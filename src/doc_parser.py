@@ -4,10 +4,10 @@ from typing import List
 
 from document import Document
 from xml.dom import minidom
+from utilities import get_stop_words
 
 
-with open(Path(__file__).parent.parent / "english_stopwords.txt") as f:
-    STOP_WORDS = f.readlines()
+STOP_WORDS = get_stop_words()
 ALLOWED_CHARACTERS = string.ascii_lowercase + string.digits
 
 
