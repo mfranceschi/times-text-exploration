@@ -35,7 +35,7 @@ if __name__ == "__main__":
     user_keywords = convert_str_to_tokens(user_input)  # (word for word in user_input.split())
     start = timepoint()
 
-    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=1, random_files=False, to_read_only=False)
+    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=4, random_files=True, to_read_only=True)
     index = 0
     for item in inverted_file.voc.iterate2():
         print(item)

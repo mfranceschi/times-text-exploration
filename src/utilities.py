@@ -2,9 +2,9 @@ import random
 import re
 import time
 from pathlib import Path
-from typing import List, Set
+from typing import Iterable, List, Set, Tuple, Union
 
-import nltk
+from voc import VOCEntry
 
 DATASETS_FOLDER = Path(__file__).parent.parent / "datasets"
 PATTERN = re.compile(r"la[0-9]{6}.xml")
@@ -55,10 +55,12 @@ def timepoint() -> float:
 def convert_str_to_tokens(data: str) -> List[str]:
 
     # Portier's method: I don't think we will use it, it requires us more work.
+    # import nltk
     # tokenizer = nltk.tokenize.casual_tokenize(data)
 
     from doc_parser import pre_work_word
-    tokenizer = list(set([pre_work_word(word) for word in data.split() if pre_work_word(word)]))
+    tokenizer = list(set([pre_work_word(word)
+                          for word in data.split() if pre_work_word(word)]))
     # Pre-work each word then ensure unique. Unfortunately it sorts words.
 
     print(type(tokenizer), tokenizer)
@@ -67,4 +69,5 @@ def convert_str_to_tokens(data: str) -> List[str]:
 
 def get_stop_words() -> Set[str]:
     with open(Path(__file__).parent.parent / "english_stopwords.txt") as f:
-        return set(f.readlines())  # In Python a set is a hash-set --> lookup is log(1).
+        # In Python a set is a hash-set --> lookup is log(1).
+        return set(f.readlines())
