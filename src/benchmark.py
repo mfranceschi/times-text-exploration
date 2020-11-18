@@ -7,6 +7,7 @@ import psutil
 from main import build_if
 from pl import PL_PythonLists
 from voc import VOC_Hashmap
+from utilities import timepoint
 
 
 def fmt(num: int, suffix: str = 'B') -> str:
@@ -35,6 +36,7 @@ if __name__ == "__main__":
 
     initial_ram = get_ram(p)
     initial_user_time, initial_kernel_time = get_cpu_times(p)
+    initial_time = timepoint()
     print(
         "Before run",
         f"RAM={fmt(initial_ram)}, CPU User time={initial_user_time}, CPU Kernel time={initial_kernel_time}",
@@ -42,15 +44,17 @@ if __name__ == "__main__":
         sep="\n"
     )
 
-    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=3, random_files=False, to_read_only=False)
+    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=100, random_files=False, to_read_only=False)
 
     new_ram = get_ram(p)
     new_user_time, new_kernel_time = get_cpu_times(p)
+    final_time = timepoint()
 
     print(
         "",
         "After run",
         f"RAM={fmt(new_ram)}, CPU User time={new_user_time}, CPU Kernel time={new_kernel_time}",
+        f"\nRun duration={final_time - initial_time}"
         "",
         sep="\n"
     )

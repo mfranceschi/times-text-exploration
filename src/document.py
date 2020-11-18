@@ -10,7 +10,7 @@ class Document:
         return f"Document[id={self.id},title={self.title}]"
 
     def __eq__(self, o: object) -> bool:
-        if isinstance(o, self.__class__):
+        if isinstance(o, Document):
             return self.id == o.id
         else:
             return False

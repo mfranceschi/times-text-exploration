@@ -1,5 +1,8 @@
 from collections import defaultdict
+import pickle
 from typing import Dict, Iterable, List, Tuple
+
+from utilities import read_pyobj_from_disk, write_pyobj_to_disk
 # from utilities import Node, Tree
 
 
@@ -68,6 +71,16 @@ class VOC:
         """
         raise NotImplementedError()
 
+    def to_disk(self, name: str) -> None:
+        """
+        Saves the VOC to the disk.
+        """
+        raise NotImplementedError()
+
+    @classmethod
+    def from_disk(cls, name: str) -> None:
+        raise NotImplementedError()
+
 
 class VOC_Hashmap(VOC):
 
@@ -97,6 +110,15 @@ class VOC_Hashmap(VOC):
     def iterate2(self) -> Iterable[Tuple[str, VOCEntry]]:
         for item in self.voc.items():
             yield item
+
+    def to_disk(self, name: str) -> None:
+        return write_pyobj_to_disk(self.voc, name)
+
+    @classmethod
+    def from_disk(cls, name: str):
+        newvoc = VOC_Hashmap()
+        newvoc.voc = read_pyobj_from_disk(name)
+        return newvoc
 
 
 # https://pythonhosted.org/BTrees/

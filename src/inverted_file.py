@@ -49,19 +49,16 @@ class InvertedFile:
                 final_score = int(100 * tf * idf)
                 pl_entry.score = final_score
 
-    def convert_to_read_only(self):
-        new_pl = PL_MMap()
+    def generate_mmap_pl(self, pl_file: str):
+        total_of_pl_entries = sum(voc_entry.pl_size for voc_entry in self.voc.iterate())
+        mmap_file_size = total_of_pl_entries * PL_MMap.PL_ENTRY_LENGTH
+        new_pl = PL_MMap(filename=pl_file, filesize=mmap_file_size, mode="write")
         new_voc = VOC_Hashmap()
 
-        if new_pl.needs_iterative_initialization():
-            for term, voc_entry in self.voc.iterate2():
-                pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
-                pl_id = new_pl.add(pl_to_copy)
-                new_voc.add_entry(term, pl_id, voc_entry.pl_size)
-        else:
-            new_pl.initialize(self.pl)
-            for term, voc_entry in self.voc.iterate2():
-                new_voc.add_entry(term, voc_entry.pl_id, voc_entry.pl_size)
+        for term, voc_entry in self.voc.iterate2():
+            pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
+            pl_id = new_pl.add(pl_to_copy)
+            new_voc.add_entry(term, pl_id, voc_entry.pl_size)
 
         self.pl = new_pl
         self.voc = new_voc
@@ -117,13 +114,18 @@ class InvertedFile:
         results.sort(key=lambda req_res: req_res.score, reverse=True)
         return results
 
-    def request_words_conjonctive(self, words: List[str]) -> List[RequestResult]:
-        """
-        Makes an "AND" request of the words.
-        The words are preprocessed first.
-        """
-        # idea: same as disjonctive but for each document we ensure that it is in all of the request's word's PLs?
-        pass
+    @classmethod
+    def read_from_files(cls, voc_file: str, pl_file: str, registry_file: str):
+        newinvf = InvertedFile(None, None)
+        newinvf.voc = VOC_Hashmap.from_disk(voc_file)
+        newinvf.pl = PL_MMap(pl_file, mode="read")
+        newinvf.register = DocRegister.from_disk(registry_file)
+        return newinvf
+
+    def write_to_files(self, voc_file: str, pl_file: str, registry_file: str):
+        self.generate_mmap_pl(pl_file)
+        self.voc.to_disk(voc_file)
+        self.register.to_disk(registry_file)
 
 
 """

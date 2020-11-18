@@ -1,10 +1,9 @@
+import pickle
 import random
 import re
 import time
 from pathlib import Path
-from typing import Iterable, List, Set, Tuple, Union
-
-from voc import VOCEntry
+from typing import Any, List, Set
 
 DATASETS_FOLDER = Path(__file__).parent.parent / "datasets"
 PATTERN = re.compile(r"la[0-9]{6}.xml")
@@ -32,12 +31,13 @@ def make_list_of_files(nbr: int = -1, random_pick: bool = False) -> List[str]:
         return [str(current_la_file) for current_la_file in la_files_in_dir[:nbr]]
 
 
-def create_empty_file_with_size(file: str, size: int) -> None:
+def create_empty_file_with_size(file: str, size: int, erase_if_present: bool = True) -> None:
     """
     Creates a file and make it have the given size.
-    If it already exists, the original is erased.
+    If it already exists and "erase_if_present", the original is erased.
+    If it already exists and not "erase_if_present", the original's size is unchanged OR increased.
     """
-    if Path(file).exists():
+    if Path(file).exists() and erase_if_present:
         Path(file).unlink()
 
     with open(file=file, mode="wb+", buffering=0) as opened_file:
@@ -63,11 +63,21 @@ def convert_str_to_tokens(data: str) -> List[str]:
                           for word in data.split() if pre_work_word(word)]))
     # Pre-work each word then ensure unique. Unfortunately it sorts words.
 
-    print(type(tokenizer), tokenizer)
     return tokenizer
 
 
 def get_stop_words() -> Set[str]:
     with open(Path(__file__).parent.parent / "english_stopwords.txt") as f:
         # In Python a set is a hash-set --> lookup is log(1).
-        return set(f.readlines())
+        lines = f.readlines()
+    return set((word.strip() for word in lines))
+
+
+def write_pyobj_to_disk(obj, filename: str):
+    with open(filename, "wb+") as f:
+        pickle.dump(obj, f)
+
+
+def read_pyobj_from_disk(filename: str) -> Any:
+    with open(filename, "rb") as f:
+        return pickle.load(f)

@@ -2,6 +2,7 @@ from typing import *
 
 from doc_parser import parse_document
 from document import Document
+from global_values import DEFAULT_PL_FILE
 from inverted_file import InvertedFile
 from pl import PL, PL_PythonLists
 from utilities import make_list_of_files, timepoint, convert_str_to_tokens
@@ -19,30 +20,23 @@ def run_search(user_keywords: List[str], inverted_file: InvertedFile) -> None:
         print("No results found.")
 
 
-def build_if(voc: VOC, pl: PL, nbr_files: int, random_files: bool, to_read_only: bool) -> InvertedFile:
+def build_if(voc: VOC, pl: PL, nbr_files: int, random_files: bool) -> InvertedFile:
     inverted_file = InvertedFile(voc=voc, pl=pl)
     list_of_files = make_list_of_files(nbr=nbr_files, random_pick=random_files)
     for file in list_of_files:
         parse_document(file, inverted_file)
     inverted_file.compute_scores()
-    if to_read_only:
-        inverted_file.convert_to_read_only()
     return inverted_file
 
 
 if __name__ == "__main__":
     user_input = "violence vIOLeNce,,, VIOLENCE"  # or input()
-    user_keywords = convert_str_to_tokens(user_input)  # (word for word in user_input.split())
+    user_keywords = convert_str_to_tokens(user_input)
     start = timepoint()
 
-    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=4, random_files=True, to_read_only=True)
-    index = 0
-    for item in inverted_file.voc.iterate2():
-        print(item)
-        index += 1
-        if index > 25:
-            break
+    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=5, random_files=False)
+    # inverted_file.generate_mmap_pl(DEFAULT_PL_FILE)
 
-    # run_search(user_keywords=user_keywords, inverted_file=inverted_file)
+    run_search(user_keywords=user_keywords, inverted_file=inverted_file)
     end = timepoint()
     print(f"Execution time: {end - start}")

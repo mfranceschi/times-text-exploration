@@ -1,7 +1,9 @@
-from typing import List, Dict, Tuple
+from pathlib import Path
+from typing import List, Dict, Tuple, overload
 import mmap
+from global_values import DEFAULT_PL_FILE, DEFAULT_PL_FILE_SIZE
 
-from utilities import create_empty_file_with_size
+import utilities
 
 
 class PLEntry:
@@ -45,15 +47,14 @@ class PL:
 
 class ReadOnlyPL:
     """
-    A PL only used for reading.
+    A PL only used for reading. It reads from disk.
     How to use:
-    1 - constructor
-    2 - initialize
-    3 - get_pl any time necessary
+    1 - constructor with file name and other arguments
+    2 - get_pl any time necessary
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, filename: str) -> None:
+        self.filename = filename
 
     def initialize(self, original_pl: PL) -> Dict[int, int]:
         """
@@ -68,9 +69,11 @@ class ReadOnlyPL:
         """
         raise NotImplementedError()
 
-    def needs_iterative_initialization() -> bool:
+    def needs_iterative_initialization(self) -> bool:
         """
-        Returns True if the given instance needs to be initialized, one list at a time. Returns False otherwise.
+        Determines how to populate the instance.
+        - If this method returns True, use the "add" method to populate, one list at a time.
+        - If this method returns False, use the "initialize" method to populate.
         """
         raise NotImplementedError()
 
@@ -101,75 +104,90 @@ class PL_PythonLists(PL):
 
 
 class PL_PythonLists_ReadOnly(ReadOnlyPL):
-    def __init__(self) -> None:
-        super().__init__()
-        self.underlying_pl: PL_PythonLists = None
+    def __init__(self, filename: str) -> None:
+        super().__init__(filename=filename)
+        self.pl_list: List[List[PLEntry]] = utilities.read_pyobj_from_disk(filename)
 
-    def initialize(self, original_pl: PL) -> Dict[int, int]:
-        assert type(original_pl) is PL_PythonLists
-        self.underlying_pl = original_pl.pl
-
-    def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
-        return self.underlying_pl.get_pl(pl_id, size)
-
-    def needs_iterative_initialization() -> bool:
-        return False
+    def get_pl(self, pl_id: int, *args, **kwargs):
+        return self.pl_list[pl_id]
 
 
 class PL_MMap(ReadOnlyPL):
     """
     READ-ONLY POSTING LIST.
-    This class is dedicated to reading a PL on disk.
-    On construction, it creates an empty, fixed-size file on disk.
-    When calling "initialize", it takes an "in-memory" PL and writes it entirely on disk.
+    This class is dedicated to reading a PL from disk.
+    On construction, 2 modes are possible:
+      - "read" (try to open the file from disk)
+      - "write" (try to create and write to file in disk).
+    The size is fixed at construction.
     pl_id is offset in file.
     size is number of consecutive entries.
     """
 
-    _FILE_NAME = "pl.txt"
-    _FILE_SIZE = int(1e5)
     _DOC_ID_LENGTH = 4  # A doc ID is encoded in 4 bytes.
     _SCORE_LENGTH = 2  # A score is encoded in 2 bytes.
-    _PL_ENTRY_LENGTH = _DOC_ID_LENGTH + _SCORE_LENGTH
+    PL_ENTRY_LENGTH = _DOC_ID_LENGTH + _SCORE_LENGTH
 
-    def __init__(self) -> None:
-        super(PL_MMap, self).__init__()
-        create_empty_file_with_size(file=self._FILE_NAME, size=self._FILE_SIZE)
-        self.file = open(self._FILE_NAME, mode="wb+", buffering=0)
-        self.mmap = mmap.mmap(self.file.fileno(), self._FILE_SIZE)
-        self.current_size = 0  # Currently used bytes in the file, starting from 0.
+    def __init__(self, filename: str = None, filesize: int = 0, mode: str = "read") -> None:
+        super(PL_MMap, self).__init__(filename=filename or DEFAULT_PL_FILE)
+
+        if mode == "read":
+            if not filesize:
+                filesize = Path(self.filename).stat().st_size
+            file_open_mode = "rb"
+            mmap_open_mode = mmap.ACCESS_READ
+            self.current_size = None  # Using it is illegal in read mode
+        elif mode == "write":
+            if not filesize:
+                filesize = DEFAULT_PL_FILE_SIZE
+            file_open_mode = "wb+"
+            mmap_open_mode = mmap.ACCESS_WRITE
+            self.current_size = 0  # Currently used bytes in the file, starting from 0.
+            utilities.create_empty_file_with_size(file=self.filename, size=filesize, erase_if_present=True)
+        else:
+            raise Exception(f"wrong parameter for mode: {mode}")
+        self.filesize = filesize
+        self.mode = mode
+
+        self.file = open(self.filename, mode=file_open_mode, buffering=0)
+        self.mmap = mmap.mmap(self.file.fileno(), self.filesize, access=mmap_open_mode)
 
     def add(self, pl_to_add: List[PLEntry]):
+        if not self.mode == "write":
+            raise RuntimeError("wrong mode, expected write")
         used_pl_id = self.current_size
         written_length = self._write_pl_of_single_word(used_pl_id, pl_to_add)
-        return used_pl_id + written_length
+        self.current_size += written_length
+        return used_pl_id
 
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
+        if not self.mode == "read":
+            raise RuntimeError("wrong mode, expected read")
         return self._read_pl_of_single_word(pl_id, size)
 
     def _write_pl_of_single_word(self, pl_id: int, entries: List[PLEntry]) -> int:
-        to_write = bytearray(self._PL_ENTRY_LENGTH * len(entries))
+        to_write = bytearray(self.PL_ENTRY_LENGTH * len(entries))
         i = 0
         for entry in entries:
-            to_write[i:i+self._PL_ENTRY_LENGTH] = self._pl_entry_to_bytearray(entry)
-            i += self._PL_ENTRY_LENGTH
+            to_write[i:i+self.PL_ENTRY_LENGTH] = self._pl_entry_to_bytearray(entry)
+            i += self.PL_ENTRY_LENGTH
         self.mmap.seek(pl_id)
         self.mmap.write(to_write)
-        return pl_id + len(to_write)
+        return len(to_write)
 
     def _read_pl_of_single_word(self, pl_id: int, size: int) -> List[PLEntry]:
         result = []
         self.mmap.seek(pl_id)
-        full_bar = self.mmap.read(self._PL_ENTRY_LENGTH * size)
-        for offset in range(0, self._PL_ENTRY_LENGTH * size, self._PL_ENTRY_LENGTH):
-            current_bar = full_bar[offset:offset + self._PL_ENTRY_LENGTH]
+        full_bar = self.mmap.read(self.PL_ENTRY_LENGTH * size)
+        for offset in range(0, self.PL_ENTRY_LENGTH * size, self.PL_ENTRY_LENGTH):
+            current_bar = full_bar[offset:offset + self.PL_ENTRY_LENGTH]
             entry = self._bytearray_to_pl_entry(current_bar)
             result.append(entry)
         return result
 
     @classmethod
     def _pl_entry_to_bytearray(cls, entry: PLEntry) -> bytearray:
-        result = bytearray(cls._PL_ENTRY_LENGTH)
+        result = bytearray(cls.PL_ENTRY_LENGTH)
         result[:cls._DOC_ID_LENGTH] = int(entry.docID).to_bytes(cls._DOC_ID_LENGTH, "little")
         result[cls._DOC_ID_LENGTH:] = int(entry.score).to_bytes(cls._SCORE_LENGTH, "little")
         return result

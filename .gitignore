@@ -149,3 +149,4 @@ datasets/*
 !datasets/a_fixfiles.py
 *.txt
 !requirements.txt
+*.bin
