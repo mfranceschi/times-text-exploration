@@ -1,3 +1,4 @@
+import sys
 from pathlib import Path
 from typing import List, Dict, Tuple, overload
 import mmap
@@ -115,15 +116,17 @@ class PL_MMap(ReadOnlyPL):
 
     def __init__(self, filename: str, mode: str, filesize: int = 0) -> None:
         super(PL_MMap, self).__init__(filename=filename or DEFAULT_PL_FILE)
+        self.filesize = filesize
+        self.mode = mode
 
         if mode == "read":
             if not filesize:
-                filesize = Path(self.filename).stat().st_size
+                self.filesize = Path(self.filename).stat().st_size
             file_open_mode = "rb"
             mmap_open_mode = mmap.ACCESS_READ
             self.current_size = None  # Using it is illegal in read mode
         elif mode == "write":
-            if not filesize:
+            if filesize == 0:
                 raise RuntimeError("missing 'filesize' argument")
             file_open_mode = "wb+"
             mmap_open_mode = mmap.ACCESS_WRITE
@@ -131,8 +134,6 @@ class PL_MMap(ReadOnlyPL):
             utilities.create_empty_file_with_size(file=self.filename, size=filesize, erase_if_present=True)
         else:
             raise RuntimeError(f"wrong parameter for mode: {mode}")
-        self.filesize = filesize
-        self.mode = mode
 
         self.file = open(self.filename, mode=file_open_mode, buffering=0)
         self.mmap = mmap.mmap(self.file.fileno(), self.filesize, access=mmap_open_mode)

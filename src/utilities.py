@@ -31,7 +31,7 @@ def make_list_of_files(nbr: int = -1, random_pick: bool = False) -> List[str]:
         return [str(current_la_file) for current_la_file in la_files_in_dir[:nbr]]
 
 
-def create_empty_file_with_size(file: str, size: int, erase_if_present: bool = True) -> None:
+def create_empty_file_with_size(file: str, size: int, erase_if_present: bool) -> None:
     """
     Creates a file and make it have the given size.
     If it already exists and "erase_if_present", the original is erased.
