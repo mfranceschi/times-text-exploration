@@ -37,12 +37,14 @@ def create_empty_file_with_size(file: str, size: int, erase_if_present: bool) ->
     If it already exists and "erase_if_present", the original is erased.
     If it already exists and not "erase_if_present", the original's size is unchanged OR increased.
     """
-    if Path(file).exists() and erase_if_present:
-        Path(file).unlink()
+    p = Path(file)
+    if p.exists() and erase_if_present:
+        p.unlink()
+        p.touch()
 
     with open(file=file, mode="wb+", buffering=0) as opened_file:
         opened_file.seek(size - 1)
-        opened_file.write(b"\0")
+        opened_file.write(b"0")
 
 
 def timepoint() -> float:

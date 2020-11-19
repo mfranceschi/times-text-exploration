@@ -1,8 +1,7 @@
-import sys
 from pathlib import Path
-from typing import List, Dict, Tuple, overload
+from typing import List
 import mmap
-from global_values import DEFAULT_PL_FILE, DEFAULT_PL_FILE_SIZE
+from global_values import DEFAULT_PL_FILE
 
 import utilities
 
@@ -128,10 +127,10 @@ class PL_MMap(ReadOnlyPL):
         elif mode == "write":
             if filesize == 0:
                 raise RuntimeError("missing 'filesize' argument")
-            file_open_mode = "wb+"
+            file_open_mode = "ab+"
             mmap_open_mode = mmap.ACCESS_WRITE
             self.current_size = 0  # Currently used bytes in the file, starting from 0.
-            utilities.create_empty_file_with_size(file=self.filename, size=filesize, erase_if_present=True)
+            utilities.create_empty_file_with_size(file=self.filename, size=self.filesize, erase_if_present=True)
         else:
             raise RuntimeError(f"wrong parameter for mode: {mode}")
 

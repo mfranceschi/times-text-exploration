@@ -2,6 +2,7 @@
 
 # Global settings
 BOOL_DO_SHUFFLE=1  # If true then we shuffle files
+RESEARCHES_NB_FILES=2  # Just before starting the research requests, we generate an IF based on that number of files to parse.
 PYTHON_EXEC=python3.8
 
 # Initial config
@@ -24,6 +25,7 @@ function Fct_Run_Loop {
     else
         Script_Save_Arg="--do_not_save"
     fi
+    rm -f *.bin
     echo "Script_Save_Arg=$Script_Save_Arg Voc_Type=$Voc_Type"
 
     echo "Run with VOC = $Voc_Type and PL_MMap usage is $Do_Save"
@@ -32,28 +34,26 @@ function Fct_Run_Loop {
         run_cmd="$SCRIPT_BUILD_PYFILE --nbfiles $nb_files $BUILD_SCRIPT_SHUFFLE_ARG $Script_Save_Arg --time --memory --voc_type $Voc_Type"
 
         run_stdout=$($run_cmd)
+        run_exitcode=$?
+        if [[ $run_exitcode -ne 0 ]]
+        then
+            echo "Error, run failed with exit code $run_exitcode"
+            exit 1
+        fi
         run_runtime=$(echo $run_stdout | awk '{print $2;}')
         run_memory=$(echo  $run_stdout | awk '{print $4;}')
 
         echo "Nb_Files= $nb_files runtime= $run_runtime run_memory= $run_memory"
+        rm -f *.bin
     done
 
     echo ""
 }
 
+# Run scripts in which we generate the IFs.
 Fct_Run_Loop 0 "VOC_Hashmap"
 Fct_Run_Loop 0 "VOC_BTree"
 Fct_Run_Loop 1 "VOC_Hashmap"
 
-# Build and save the IF
-for nb_files in $NB_FILES_RANGE
-do
-    voc_type="VOC_Hashmap"
-    run_cmd="$SCRIPT_BUILD_PYFILE --nbfiles $nb_files $BUILD_SCRIPT_SHUFFLE_ARG --time --memory --voc_type $voc_type"
-
-    run_stdout=$($run_cmd)
-    run_runtime=$(echo $run_stdout | awk '{print $2;}')    # sed -n 1p)
-    run_memory=$(echo  $run_stdout | awk '{print $4;}')
-
-    echo "Nb_Files= $nb_files runtime= $run_runtime run_memory= $run_memory"
-done
+# Prepare research commands
+$SCRIPT_BUILD_PYFILE --nbfiles $RESEARCHES_NB_FILES $BUILD_SCRIPT_SHUFFLE_ARG --voc_type "VOC_Hashmap"

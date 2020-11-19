@@ -1,5 +1,4 @@
-DEFAULT_VOC_FILE = "voc.bin"
-DEFAULT_PL_FILE = "pl.bin"
-DEFAULT_REGISTER_FILE = "register.bin"
-DEFAULT_PL_FILE_SIZE = int(1e6)  # 1MB
+DEFAULT_VOC_FILE = "./voc.bin"
+DEFAULT_PL_FILE = "./pl.bin"
+DEFAULT_REGISTER_FILE = "./register.bin"
 PRINT_FILE_WHILE_PARSING = False

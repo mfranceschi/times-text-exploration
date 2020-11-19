@@ -6,7 +6,6 @@ from global_values import *
 from main import build_if
 from pl import PL_PythonLists
 import utilities
-import voc
 
 
 def main():

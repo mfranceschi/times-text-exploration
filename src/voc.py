@@ -1,9 +1,7 @@
 from collections import defaultdict
-import pickle
 from typing import Dict, Iterable, List, Tuple
 
 from utilities import read_pyobj_from_disk, write_pyobj_to_disk
-# from utilities import Node, Tree
 
 
 class VOCEntry:
