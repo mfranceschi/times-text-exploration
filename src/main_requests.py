@@ -1,5 +1,6 @@
 import argparse
-from itertools import islice
+
+from psutil import Process
 
 import utilities
 from global_values import *
@@ -17,20 +18,27 @@ def main():
     parser.add_argument("--pl", help="Filename of the PL", type=str, default=DEFAULT_PL_FILE)
     parser.add_argument("--reg", help="Filename of the Doc Register", type=str, default=DEFAULT_REGISTER_FILE)
     parser.add_argument("--time", "-t", help="Output runtime in milliseconds", action="store_true")
+    parser.add_argument(
+        "--memory", "-m",
+        help="Last output line is the RAM used in bytes (diff between start and end RAM values)",
+        action="store_true")
     args = parser.parse_args()
 
+    pr = Process()
     start_time = utilities.timepoint()
+    start_ram = pr.memory_info().rss
+
     inverted_file = InvertedFile.read_from_files(args.voc, args.pl, args.reg)
-    print(list(islice(((x[1].pl_id, x[1].pl_size) for x in inverted_file.voc.iterate2()), 5)))
-    # print([(x[1].pl_id, x[1].pl_size) for x in inverted_file.voc.iterate2()])
-    # print([doc.id for doc in inverted_file.register.registry])
 
     user_keywords = utilities.convert_str_to_tokens(args.request)
     run_search(user_keywords, inverted_file)
-    end_time = utilities.timepoint()
 
+    end_time = utilities.timepoint()
+    end_ram = pr.memory_info().rss
     if args.time:
         print(int(1000 * (end_time - start_time)))
+    if args.memory:
+        print(end_ram - start_ram)
 
 
 if __name__ == "__main__":

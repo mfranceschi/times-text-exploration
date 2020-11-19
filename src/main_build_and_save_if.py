@@ -1,5 +1,7 @@
 import argparse
 
+from psutil import Process
+
 from global_values import *
 from main import build_if
 from pl import PL_PythonLists
@@ -16,9 +18,15 @@ def main():
     parser.add_argument("--reg", help="Filename of the Doc Register", type=str, default=DEFAULT_REGISTER_FILE)
     parser.add_argument("--do_not_save", help="Generate in-memory but do not save in files", action="store_true")
     parser.add_argument("--time", "-t", help="Output runtime in milliseconds", action="store_true")
+    parser.add_argument(
+        "--memory", "-m",
+        help="Last output line is the RAM used in bytes (diff between start and end RAM values)",
+        action="store_true")
     args = parser.parse_args()
 
+    pr = Process()
     start_time = utilities.timepoint()
+    start_ram = pr.memory_info().rss
     inverted_file = build_if(
         voc=VOC_Hashmap(),
         pl=PL_PythonLists(),
@@ -32,8 +40,11 @@ def main():
             args.reg)
 
     end_time = utilities.timepoint()
+    end_ram = pr.memory_info().rss
     if args.time:
         print(int(1000 * (end_time - start_time)))
+    if args.memory:
+        print(end_ram - start_ram)
 
 
 if __name__ == "__main__":

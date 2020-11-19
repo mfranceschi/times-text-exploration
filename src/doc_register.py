@@ -1,7 +1,7 @@
 from typing import List, Iterable
 
 from document import Document
-from utilities import read_pyobj_from_disk, write_pyobj_to_disk
+import utilities
 
 
 class DocRegister:
@@ -37,10 +37,10 @@ class DocRegister:
         return len(self.registry)
 
     def to_disk(self, name: str) -> None:
-        return write_pyobj_to_disk(self.registry, name)
+        return utilities.write_pyobj_to_disk(self.registry, name)
 
     @classmethod
     def from_disk(cls, name: str):
         newregistry = DocRegister()
-        newregistry.registry = read_pyobj_from_disk(name)
+        newregistry.registry = utilities.read_pyobj_from_disk(name)
         return newregistry

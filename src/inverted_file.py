@@ -118,7 +118,7 @@ class InvertedFile:
     def read_from_files(cls, voc_file: str, pl_file: str, registry_file: str):
         newinvf = InvertedFile(None, None)
         newinvf.voc = VOC_Hashmap.from_disk(voc_file)
-        newinvf.pl = PL_MMap(pl_file, mode="read")
+        newinvf.pl = PL_MMap(filename=pl_file, mode="read")
         newinvf.register = DocRegister.from_disk(registry_file)
         return newinvf
 

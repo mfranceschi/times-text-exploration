@@ -4,6 +4,7 @@ from typing import List
 
 from document import Document
 from xml.dom import minidom
+from global_values import PRINT_FILE_WHILE_PARSING
 from utilities import get_stop_words
 
 
@@ -40,7 +41,9 @@ def pre_work_word(word: str) -> str:
 
 def parse_document(filename: str, invf):
     # https://docs.python.org/fr/3/library/xml.dom.html#module-xml.dom
-    print(f"Filename : {filename}")
+    if PRINT_FILE_WHILE_PARSING:
+        print(f"Parsing file '{filename}'")
+
     with open(filename, "r") as f:
         document_text = f.read()
 

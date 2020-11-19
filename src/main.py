@@ -34,7 +34,7 @@ if __name__ == "__main__":
     user_keywords = convert_str_to_tokens(user_input)
     start = timepoint()
 
-    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=5, random_files=False)
+    inverted_file = build_if(VOC_Hashmap(), PL_PythonLists(), nbr_files=2, random_files=False)
     # inverted_file.generate_mmap_pl(DEFAULT_PL_FILE)
 
     run_search(user_keywords=user_keywords, inverted_file=inverted_file)

@@ -56,24 +56,9 @@ class ReadOnlyPL:
     def __init__(self, filename: str) -> None:
         self.filename = filename
 
-    def initialize(self, original_pl: PL) -> Dict[int, int]:
-        """
-        Copies the contents of "original_pl" and copies it on the disk.
-        Returns a list of pairs <original_pl_id, new_pl_id>.
-        """
-        raise NotImplementedError()
-
     def get_pl(self, pl_id: int, size: int) -> List[PLEntry]:
         """
         Returns a Python list with all entries for the given PL.
-        """
-        raise NotImplementedError()
-
-    def needs_iterative_initialization(self) -> bool:
-        """
-        Determines how to populate the instance.
-        - If this method returns True, use the "add" method to populate, one list at a time.
-        - If this method returns False, use the "initialize" method to populate.
         """
         raise NotImplementedError()
 
@@ -117,7 +102,7 @@ class PL_MMap(ReadOnlyPL):
     READ-ONLY POSTING LIST.
     This class is dedicated to reading a PL from disk.
     On construction, 2 modes are possible:
-      - "read" (try to open the file from disk)
+      - "read" (try to open the file from disk, filesize can be omitted)
       - "write" (try to create and write to file in disk).
     The size is fixed at construction.
     pl_id is offset in file.
@@ -128,7 +113,7 @@ class PL_MMap(ReadOnlyPL):
     _SCORE_LENGTH = 2  # A score is encoded in 2 bytes.
     PL_ENTRY_LENGTH = _DOC_ID_LENGTH + _SCORE_LENGTH
 
-    def __init__(self, filename: str = None, filesize: int = 0, mode: str = "read") -> None:
+    def __init__(self, filename: str, mode: str, filesize: int = 0) -> None:
         super(PL_MMap, self).__init__(filename=filename or DEFAULT_PL_FILE)
 
         if mode == "read":
@@ -139,13 +124,13 @@ class PL_MMap(ReadOnlyPL):
             self.current_size = None  # Using it is illegal in read mode
         elif mode == "write":
             if not filesize:
-                filesize = DEFAULT_PL_FILE_SIZE
+                raise RuntimeError("missing 'filesize' argument")
             file_open_mode = "wb+"
             mmap_open_mode = mmap.ACCESS_WRITE
             self.current_size = 0  # Currently used bytes in the file, starting from 0.
             utilities.create_empty_file_with_size(file=self.filename, size=filesize, erase_if_present=True)
         else:
-            raise Exception(f"wrong parameter for mode: {mode}")
+            raise RuntimeError(f"wrong parameter for mode: {mode}")
         self.filesize = filesize
         self.mode = mode
 
