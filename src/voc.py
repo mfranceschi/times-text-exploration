@@ -160,7 +160,10 @@ class VOC_BTree(VOC):
         def __init__(self, term: str = None, voc_entry: VOCEntry = None):
             self.left: VOC_BTree.Node = None
             self.right: VOC_BTree.Node = None
-            self.data = None  # = self.__class__.NodeData(term, voc_entry)
+            if term is None and voc_entry is None:
+                self.data = None  # = self.__class__.NodeData(term, voc_entry)
+            else:
+                self.data = VOC_BTree.Node.NodeData(term, voc_entry)
 
         def insert(self, term: str, voc_entry: VOCEntry):
             """
@@ -199,12 +202,18 @@ class VOC_BTree(VOC):
                 return self.data.voc_entry
 
         def in_order_traversal(self, root=None) -> List[Tuple[str, VOCEntry]]:
+            # Adapted from:
             # https://www.tutorialspoint.com/python_data_structure/python_tree_traversal_algorithms.htm
+            root: VOC_BTree.Node = root
             res = []
             if root:
-                res = self.in_order_traversal(root.left)
-                res.append(root.data)
-                res = res + self.in_order_traversal(root.right)
+                left = self.in_order_traversal(root.left)
+                right = self.in_order_traversal(root.right)
+                if root.data:
+                    data = (root.data.term, root.data.voc_entry)
+                    res = [*left, data, *right]
+                else:
+                    res = [*left, *right]  # Normally it still results in an empty list.
             return res
 
         def PrintTree(self):
@@ -230,19 +239,22 @@ class VOC_BTree(VOC):
 
     def increment_pl_size(self, term: str):
         voc_entry = self.tree.findval(term)
-        voc_entry.pl_size += 1
+        if voc_entry:
+            voc_entry.pl_size += 1
+        else:
+            raise KeyError(f"Term '{term}' not found")
 
     def add_entry(self, term: str, pl_identifier: int, size: int = 1):
         voc_entry = VOCEntry(pl_identifier=pl_identifier, size_pl=size)
         self.tree.insert(term, voc_entry)
-        pass
 
     def iterate(self) -> Iterable[VOCEntry]:
         for term, voc_entry in self.tree.in_order_traversal(self.tree):
             yield voc_entry
 
     def iterate2(self) -> Iterable[Tuple[str, VOCEntry]]:
-        return self.tree.in_order_traversal(self.tree)
+        for x in self.tree.in_order_traversal(self.tree):
+            yield x
 
 
 if __name__ == "__main__":
@@ -256,10 +268,13 @@ if __name__ == "__main__":
     vocb.add_entry("bob5", 12, 1)
     vocb.increment_pl_size("antony")
 
-    print(vocb.has_term("antony"))
-    print(vocb.has_term("julie"))
-    print(vocb.has_term("toto"))
+    print(f"{vocb.has_term('antony')=}")
+    print(f"{vocb.has_term('julie')=}")
+    print(f"{vocb.has_term('toto')=}")
 
+    print("iterate2")
     print([item for item in vocb.iterate2()])
 
+    print()
+    print("PrintTree")
     vocb.tree.PrintTree()
