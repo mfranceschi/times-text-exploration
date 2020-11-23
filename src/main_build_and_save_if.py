@@ -1,4 +1,5 @@
 import argparse
+import gc
 
 from psutil import Process
 
@@ -6,6 +7,7 @@ from global_values import *
 from main import build_if
 from pl import PL_PythonLists
 import utilities
+import voc
 
 
 def main():
@@ -44,13 +46,10 @@ def main():
             args.reg)
 
     end_time = utilities.timepoint()
+    gc.collect()
     end_ram = pr.memory_info().rss
-    if args.time and False:
-        print(int(1000 * (end_time - start_time)))
 
     print(f"Runtime(ms) {int(1000 * (end_time - start_time))} Memory(bytes) {end_ram - start_ram}")
-    if args.memory and False:
-        print(end_ram - start_ram)
 
 
 if __name__ == "__main__":

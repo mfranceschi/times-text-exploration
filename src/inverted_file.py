@@ -1,5 +1,5 @@
 import math
-from typing import List
+from typing import List, final
 
 from doc_parser import pre_work_word
 from doc_register import DocRegister
@@ -32,7 +32,7 @@ class InvertedFile:
     def register_document(self, doc: Document) -> None:
         self.register += doc
 
-    def compute_scores(self):
+    def compute_scores(self, convert_to_int: bool = True):
         """
         When all documents are parsed, we re-compute scores for all PL entries.
         """
@@ -46,7 +46,9 @@ class InvertedFile:
             for pl_entry in current_pl:
                 tf = 1 + math.log(pl_entry.score)
                 idf = math.log(D / (1 + pl_size))
-                final_score = int(100 * tf * idf)
+                final_score = 100 * tf * idf
+                if convert_to_int:
+                    final_score = int(final_score)
                 pl_entry.score = final_score
 
     def generate_mmap_pl(self, pl_file: str):

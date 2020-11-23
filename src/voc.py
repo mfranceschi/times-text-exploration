@@ -153,7 +153,7 @@ class VOC_BTree(VOC):
                 return bool(self.term)
 
             def __str__(self) -> str:
-                return f"NodeData[{self.term=}, {self.voc_entry=}]"
+                return f"NodeData[term={self.term}, entry={self.voc_entry}]"
 
         def __init__(self, term: str = None, voc_entry: VOCEntry = None):
             self.left: VOC_BTree.Node = None
