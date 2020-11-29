@@ -2,6 +2,7 @@ import argparse
 
 from psutil import Process
 
+import gc
 import utilities
 from global_values import *
 from inverted_file import InvertedFile
@@ -37,11 +38,16 @@ def main():
     run_search(user_keywords, inverted_file)
 
     end_time = utilities.timepoint()
+    gc.collect()
     end_ram = pr.memory_info().rss
+    output_str = ""
     if args.time:
-        print(int(1000 * (end_time - start_time)))
+        output_str += f"Runtime(ms) {int(1000 * (end_time - start_time))}"
+    if args.time and args.memory:
+        output_str += " "
     if args.memory:
-        print(end_ram - start_ram)
+        output_str += f"Memory(bytes) {end_ram - start_ram}"
+    print(output_str)
 
 
 if __name__ == "__main__":

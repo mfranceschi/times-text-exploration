@@ -48,8 +48,14 @@ def main():
     end_time = utilities.timepoint()
     gc.collect()
     end_ram = pr.memory_info().rss
-
-    print(f"Runtime(ms) {int(1000 * (end_time - start_time))} Memory(bytes) {end_ram - start_ram}")
+    output_str = ""
+    if args.time:
+        output_str += f"Runtime(ms) {int(1000 * (end_time - start_time))}"
+    if args.time and args.memory:
+        output_str += " "
+    if args.memory:
+        output_str += f"Memory(bytes) {end_ram - start_ram}"
+    print(output_str)
 
 
 if __name__ == "__main__":
