@@ -83,3 +83,15 @@ def write_pyobj_to_disk(obj, filename: str):
 def read_pyobj_from_disk(filename: str) -> Any:
     with open(filename, "rb") as f:
         return pickle.load(f)
+
+
+def fmt(num: int, suffix: str = 'B') -> str:
+    """
+    From https://stackoverflow.com/a/1094933
+    Converts an amount of bytes to a human-readable version.
+    """
+    for unit in ['', 'Ki', 'Mi', 'Gi', 'Ti', 'Pi', 'Ei', 'Zi']:
+        if abs(num) < 1024.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1024.0
+    return "%.1f%s%s" % (num, 'Yi', suffix)

@@ -254,6 +254,15 @@ class VOC_BTree(VOC):
         for x in self.tree.in_order_traversal(self.tree):
             yield x
 
+    def to_disk(self, name: str):
+        return write_pyobj_to_disk(self.tree, name)
+
+    @classmethod
+    def from_disk(cls, name: str):
+        newvoc = VOC_BTree()
+        newvoc.tree = read_pyobj_from_disk(name)
+        return newvoc
+
 
 if __name__ == "__main__":
     vocb = VOC_BTree()
@@ -266,9 +275,8 @@ if __name__ == "__main__":
     vocb.add_entry("bob5", 12, 1)
     vocb.increment_pl_size("antony")
 
-    print(f"{vocb.has_term('antony')=}")
-    print(f"{vocb.has_term('julie')=}")
-    print(f"{vocb.has_term('toto')=}")
+    for term in ["antony", "julie", "toto"]:
+        print(f"Term {term} is in voc btree: {vocb.has_term(term)}")
 
     print("iterate2")
     print([item for item in vocb.iterate2()])
@@ -276,3 +284,11 @@ if __name__ == "__main__":
     print()
     print("PrintTree")
     vocb.tree.PrintTree()
+
+    from pathlib import Path
+    temp_file_path = Path("voctest.bin")
+    vocb.to_disk(temp_file_path)
+    vocb2 = VOC_BTree.from_disk(temp_file_path)
+    print("PrintTree 2")
+    vocb2.tree.PrintTree()
+    temp_file_path.unlink(True)

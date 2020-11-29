@@ -6,6 +6,7 @@ import utilities
 from global_values import *
 from inverted_file import InvertedFile
 from main import run_search
+import voc
 
 
 def main():
@@ -17,6 +18,7 @@ def main():
     parser.add_argument("--voc", help="Filename of the VOC", type=str, default=DEFAULT_VOC_FILE)
     parser.add_argument("--pl", help="Filename of the PL", type=str, default=DEFAULT_PL_FILE)
     parser.add_argument("--reg", help="Filename of the Doc Register", type=str, default=DEFAULT_REGISTER_FILE)
+    parser.add_argument("--voc_type", help="Type of the PL to instantiate", type=str, default="VOC_Hashmap")
     parser.add_argument("--time", "-t", help="Output runtime in milliseconds", action="store_true")
     parser.add_argument(
         "--memory", "-m",
@@ -28,7 +30,8 @@ def main():
     start_time = utilities.timepoint()
     start_ram = pr.memory_info().rss
 
-    inverted_file = InvertedFile.read_from_files(args.voc, args.pl, args.reg)
+    voc_type = eval(f"voc.{args.voc_type}")
+    inverted_file = InvertedFile.read_from_files(args.voc, args.pl, args.reg, voc_type)
 
     user_keywords = utilities.convert_str_to_tokens(args.request)
     run_search(user_keywords, inverted_file)
