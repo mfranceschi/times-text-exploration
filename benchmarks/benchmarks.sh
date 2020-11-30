@@ -13,7 +13,7 @@ then
 else
     BUILD_SCRIPT_SHUFFLE_ARG=""
 fi
-NB_FILES_RANGE="1 2 5 5 10 20 50 100"
+NB_FILES_RANGE="300" #"1 2 5 10 20 50 100"
 SCRIPT_REQUEST_PYFILE="$PYTHON_EXEC ../src/main_requests.py"
 
 function Fct_Run_Loop {
@@ -45,9 +45,33 @@ function Fct_Run_Loop {
         run_memory=$(echo  $run_stdout | awk '{print $4;}')
 
         echo "Nb_Files= $nb_files runtime= $run_runtime ms run_memory= $run_memory bytes"
-        rm -f *.bin
-    done
+        #rm -f *.bin
 
+        # Run scripts to automate queries VOC_HashMap
+        for i in $(seq 1 100);
+        do
+            Fct_Run_Request "said" "VOC_Hashmap" "hashmap.csv" nb_files
+            echo $i
+        done 
+
+        for i in $(seq 1 100);
+        do 
+            Fct_Run_Request "zayak" "VOC_Hashmap" "hashmap.csv" nb_files
+            echo $i
+        done 
+
+        for i in $(seq 1 100);
+        do   
+            Fct_Run_Request "said will one two also" "VOC_Hashmap" "hashmap.csv" nb_files
+            echo $i
+        done 
+
+        for i in $(seq 1 100);
+        do  
+            Fct_Run_Request "zayak mbonu 5835 pfingst aaron's" "VOC_Hashmap" "hashmap.csv" nb_files
+            echo $i
+        done 
+    done
     echo ""
 }
 
@@ -55,60 +79,61 @@ function Fct_Run_Request {
     Keywords=$1
     Voc_Type=$2
     CSV_File=$3
+    nbFiles=$4
 
     echo "Run with VOC = $Voc_Type and with the following keywords : $Keywords "
-    for nb_files in $NB_FILES_RANGE
-    do
-        # Create all the bin files
-        if [[ $Do_Save -eq 1 ]]
-        then
-            Script_Save_Arg=""
-        else
-            Script_Save_Arg="--do_not_save"
-        fi
-        rm -f *.bin
+    # Run the requests
+    run_cmd="$SCRIPT_REQUEST_PYFILE --request \"$nb_files\"  --time --memory --voc_type $Voc_Type"
 
-        run_cmd="$SCRIPT_BUILD_PYFILE --nbfiles $nb_files $BUILD_SCRIPT_SHUFFLE_ARG --time --memory --voc_type $Voc_Type"
-        run_stdout=$($run_cmd)
-        run_exitcode=$?
-        if [[ $run_exitcode -ne 0 ]]
-        then
-            echo "Error, run failed with exit code $run_exitcode"
-            exit 1
-        fi
+    run_stdout=$($run_cmd | tail -1)
+    run_exitcode=$?
+    if [[ $run_exitcode -ne 0 ]]
+    then
+        echo "Error, run failed with exit code $run_exitcode"
+        exit 1
+    fi
 
-        # Run the requests
-        run_cmd="$SCRIPT_REQUEST_PYFILE --request \"$nb_files\"  --time --memory --voc_type $Voc_Type"
+    run_runtime=$(echo $run_stdout | awk '{print $2;}')
+    run_memory=$(echo  $run_stdout | awk '{print $4;}')
 
-        run_stdout=$($run_cmd | tail -1)
-        run_exitcode=$?
-        if [[ $run_exitcode -ne 0 ]]
-        then
-            echo "Error, run failed with exit code $run_exitcode"
-            exit 1
-        fi
-
-        run_runtime=$(echo $run_stdout | awk '{print $2;}')
-        run_memory=$(echo  $run_stdout | awk '{print $4;}')
-
-        echo "$Keywords,$nb_files,$run_runtime,$run_memory" >> "$CSV_File"
-        echo "Nb_Files= $nb_files runtime= $run_runtime ms run_memory= $run_memory bytes"
-        rm -f *.bin
-    done
+    echo "$Keywords,$nb_files,$run_runtime,$run_memory" >> "$CSV_File"
+    echo "Nb_Files= $nb_files runtime= $run_runtime ms run_memory= $run_memory bytes"
 
     echo ""
 }
 
 # Run scripts in which we generate the IFs.
-# Fct_Run_Loop 0 "VOC_Hashmap"
+#Fct_Run_Loop 0 "VOC_Hashmap"
 # Fct_Run_Loop 0 "VOC_BTree"
-# Fct_Run_Loop 1 "VOC_Hashmap"
+Fct_Run_Loop 1 "VOC_Hashmap"
 
-# Run scripts to automate queries VOC_HashMap
-#Fct_Run_Request "said" "VOC_Hashmap" "popular_hashmap.csv"
-#Fct_Run_Request "zayak" "VOC_Hashmap" "rare_hashmap.csv"
 
-Fct_Run_Request "said" "VOC_BTree" "test.csv"
+# # Run scripts to automate queries VOC_HashMap
+# for i in $(seq 1 100);
+# do
+#     Fct_Run_Request "said" "VOC_Hashmap" "hashmap.csv"
+#     echo $i
+# done 
+
+
+# for i in $(seq 1 100);
+# do 
+#     Fct_Run_Request "zayak" "VOC_Hashmap" "hashmap.csv"
+#     echo $i
+# done 
+
+# for i in $(seq 1 100);
+# do   
+#     Fct_Run_Request "said will one two also" "VOC_Hashmap" "hashmap.csv"
+#     echo $i
+# done 
+
+# for i in $(seq 1 100);
+# do  
+#     Fct_Run_Request "zayak mbonu 5835 pfingst aaron's" "VOC_Hashmap" "hashmap.csv"
+#     echo $i
+# done 
+#Fct_Run_Request "said" "VOC_BTree" "test.csv"
 
 
 # Prepare research commands
