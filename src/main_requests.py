@@ -31,7 +31,7 @@ def main():
     start_time = utilities.timepoint()
     start_ram = pr.memory_info().rss
 
-    voc_type = eval(f"voc.{args.voc_type}")
+    voc_type: type = eval(f"voc.{args.voc_type}")
     inverted_file = InvertedFile.read_from_files(args.voc, args.pl, args.reg, voc_type)
 
     user_keywords = utilities.convert_str_to_tokens(args.request)

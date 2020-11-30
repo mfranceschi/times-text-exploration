@@ -3,7 +3,7 @@ from typing import List, final
 
 from doc_parser import pre_work_word
 from doc_register import DocRegister
-from voc import VOC, VOC_Hashmap
+from voc import VOC
 from pl import PL, PLEntry, PL_MMap, ReadOnlyPL
 
 from document import Document
@@ -55,15 +55,13 @@ class InvertedFile:
         total_of_pl_entries = sum(voc_entry.pl_size for voc_entry in self.voc.iterate())
         mmap_file_size = total_of_pl_entries * PL_MMap.PL_ENTRY_LENGTH
         new_pl = PL_MMap(filename=pl_file, filesize=mmap_file_size, mode="write")
-        new_voc = VOC_Hashmap()
 
-        for term, voc_entry in self.voc.iterate2():
+        for voc_entry in self.voc.iterate():
             pl_to_copy = self.pl.get_pl(voc_entry.pl_id, voc_entry.pl_size)
             pl_id = new_pl.add(pl_to_copy)
-            new_voc.add_entry(term, pl_id, voc_entry.pl_size)
+            voc_entry.pl_id = pl_id
 
         self.pl = new_pl
-        self.voc = new_voc
 
     def notify_word_appeared(self, word: str, docID: int, occurences: int) -> None:
         """
@@ -117,7 +115,7 @@ class InvertedFile:
         return results
 
     @classmethod
-    def read_from_files(cls, voc_file: str, pl_file: str, registry_file: str, voc_type: type = VOC_Hashmap):
+    def read_from_files(cls, voc_file: str, pl_file: str, registry_file: str, voc_type: type):
         newinvf = InvertedFile(None, None)
         newinvf.voc = voc_type.from_disk(voc_file)
         newinvf.pl = PL_MMap(filename=pl_file, mode="read")
