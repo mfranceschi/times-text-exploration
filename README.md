@@ -13,6 +13,7 @@
 
 ## Scripts
 
-- `main_build_and_save_if.py`: generates an Inverted File. By default it is in-memory only.
-- `main_requests.py`: performs requests on an on-disk Inverted File. Beware of some detail when using several terms in your request.
-- `tool_test_score_coef.py`: performs some simple tests and analysis. It is not very user-friendly.
+- `src/main_build_and_save_if.py`: generates an Inverted File. By default it is in-memory only.
+- `src/main_requests.py`: performs requests on an on-disk Inverted File. Beware of some detail when using several terms in your request.
+- `src/tool_test_score_coef.py`: performs some simple tests and analysis. It is not very user-friendly.
+- `benchmarks/benchmarks.sh` : Linux Shell script to run timing and memory analysis tools on our program. 
